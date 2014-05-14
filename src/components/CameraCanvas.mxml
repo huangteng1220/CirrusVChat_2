@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="navigatorcontent1_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			public var outgoingStream:NetStream;
+			public var lineMSG:Object;
+
+			
+			
+			
+			
+			
+			
+			protected function navigatorcontent1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub									
+				
+				vdDisplay.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown,false,0,true);
+				vdDisplay.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove,false,0,true);
+				vdDisplay.addEventListener(MouseEvent.MOUSE_UP, onMouseUp,false,0,true);
+			}
+			private function onMouseDown(e:MouseEvent):void {
+				trace("on vdDisplay MouseDow  ");
+				
+				
+				lineMSG= new Object();
+				//add some extra data to ensure every sent object is unique
+				lineMSG.id = new Date().time;					
+				var lineStartPoint:Point=new Point(e.localX, e.localY);
+				lineMSG.lineStartPoint=lineStartPoint;
+				
+				startDrawingLine(lineMSG);
+				
+				if (outgoingStream)
+				{
+					
+					outgoingStream.send("onImLine_s", FlexGlobals.topLevelApplication.userNameInput.text, lineMSG);
+					trace("MouseDown:"+"("+lineMSG.lineStartPoint.x+","+lineMSG.lineStartPoint.y+")");
+				}else{
+					trace("outgoingStream is null");
+				}
+				
+				
+			}
+			public function initLine():void{
+				drawLineUI.graphics.beginFill(0xF00FFF);
+				drawLineUI.graphics.endFill();
+				drawLineUI.graphics.lineStyle(2, 0x00ff00);
+				
+			}
+			
+			public function startDrawingLine(startPoint:Object):void{
+						
+				initLine();
+				drawLineUI.graphics.moveTo(startPoint.lineStartPoint.x, startPoint.lineStartPoint.y);										
+
+			}
+			
+			
+			
+			
+			
+			private function onMouseMove(e:MouseEvent):void {
+				if (e.buttonDown) {
+
+					
+					var lineEndPoint:Point=new Point(e.localX, e.localY);
+					
+					lineMSG.lineEndPoint=lineEndPoint;
+					
+					onDrawingLine(lineMSG);	
+					
+					if (outgoingStream)
+					{
+						outgoingStream.send("onImLine_m", FlexGlobals.topLevelApplication.userNameInput.text, lineMSG);
+						trace("MouseDown:"+"("+lineMSG.lineEndPoint.x+","+lineMSG.lineEndPoint.y+")");
+					}   
+					
+				}else{
+					drawLineUI.graphics.clear();
+					
+				}
+			}
+			
+			public function onDrawingLine(drawingPoint:Object):void{
+				drawLineUI.graphics.clear();//当鼠标移动，擦除上次画的线，重新画线
+				initLine();
+				drawLineUI.graphics.moveTo(drawingPoint.lineStartPoint.x, drawingPoint.lineStartPoint.y);
+				drawLineUI.graphics.lineTo(drawingPoint.lineEndPoint.x, drawingPoint.lineEndPoint.y);
+  
+			}
+			
+			
+			
+			
+			private function onMouseUp(e:MouseEvent):void {
+				
+				onOverDraw();
+				
+				
+			}
+			
+			
+			public function onOverDraw():void{
+				drawLineUI.graphics.clear();
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<mx:VideoDisplay id="vdDisplay"  width="100%" height="100%"/>
+	<mx:UIComponent id="drawLineUI" width="100%" height="100%" />
+	
+</s:NavigatorContent>
