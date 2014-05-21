@@ -302,7 +302,7 @@
 								
 								
 								trace("结束画线");
-								remoteCameraCanvas.onOverDraw();
+								remoteCameraCanvas.dispatchEvent(new MouseEvent(MouseEvent.MOUSE_UP));
 								
 								
 								
