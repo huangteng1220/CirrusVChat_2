@@ -280,11 +280,14 @@
 								
 								
 								trace("onConnect 里面的onImLine_s开始画线");
+								trace("lineMSG.localOrRemote_int:"+lineMSG.localOrRemote_int);
+								if(lineMSG.localOrRemote_int==0){//说明是在本地画线，则另一端客户端就必须跟着画线
+								   remoteCameraCanvas.startDrawingLine(lineMSG);
+								}else if(lineMSG.localOrRemote_int==1){//说明远端是在远程视频窗口上画线，则另一端需要在本地画线
 								
-								remoteCameraCanvas.startDrawingLine(lineMSG);
+								  localCameraCanvas.startDrawingLine(lineMSG);
 								
-								
-								
+								}
 							}
 							
 							//鼠标移动的时候
@@ -293,8 +296,15 @@
 								
 								
 								trace("onConnect 里面的onImLine_m正在画线");
+								if(lineMSG.localOrRemote_int==0){//说明是在本地画线，则另一端客户端就必须跟着画线
+									remoteCameraCanvas.onDrawingLine(lineMSG);
+								}else if(lineMSG.localOrRemote_int==1){//说明远端是在远程视频窗口上画线，则另一端需要在本地画线
+									
+									localCameraCanvas.onDrawingLine(lineMSG);
+									
+								}
+								//remoteCameraCanvas.onDrawingLine(lineMSG);
 								
-								remoteCameraCanvas.onDrawingLine(lineMSG);
 								
 							}
 							i.onImLine_u=	function(name:String, lineMSG:Object):void
@@ -496,8 +506,13 @@
 				i.onImLine_s= function(name:String, lineMSG:Object):void
 				{
 					trace("placeCall开始画线");
-					
-					remoteCameraCanvas.startDrawingLine(lineMSG);
+					trace("lineMSG.localOrRemote_int:"+lineMSG.localOrRemote_int);
+					//remoteCameraCanvas.startDrawingLine(lineMSG);
+					if(lineMSG.localOrRemote_int==0){//说明是在本地画线，则另一端客户端就必须跟着画线
+						remoteCameraCanvas.startDrawingLine(lineMSG);
+					}else if(lineMSG.localOrRemote_int==1){//说明远端是在远程视频窗口上画线，则另一端需要在本地画线						
+						localCameraCanvas.startDrawingLine(lineMSG);						
+					}
 					
 				}	
 				
@@ -505,8 +520,15 @@
 				{
 					
 					
-					trace("正在画线");
-					remoteCameraCanvas.onDrawingLine(lineMSG);
+					trace("placeCall正在画线");
+					//remoteCameraCanvas.onDrawingLine(lineMSG);
+					if(lineMSG.localOrRemote_int==0){//说明是在本地画线，则另一端客户端就必须跟着画线
+						remoteCameraCanvas.onDrawingLine(lineMSG);
+					}else if(lineMSG.localOrRemote_int==1){//说明远端是在远程视频窗口上画线，则另一端需要在本地画线
+						
+						localCameraCanvas.onDrawingLine(lineMSG);
+						
+					}
 					
 				}	
 				
@@ -514,23 +536,23 @@
 				{
 					
 					
-					trace("结束画线");
+					trace("placeCall结束画线");
 					remoteCameraCanvas.onOverDraw();
 					
 					
 				}		
+
 				
 				
 				
 				
 				incomingStream.client = i;
 				
-				remoteCameraCanvas.vdDisplay.mx_internal::videoPlayer.attachNetStream(incomingStream);
+				// 将邀请的用户的视频添加到本地呼叫的远程窗口
+ 				remoteCameraCanvas.vdDisplay.mx_internal::videoPlayer.attachNetStream(incomingStream);
 				remoteCameraCanvas.vdDisplay.mx_internal::videoPlayer.visible = true;
-				
-				
-				
-				remoteCameraCanvas.label="Remote Vedio";
+				remoteCameraCanvas.label="Remote Vedio"; 
+				remoteCameraCanvas.outgoingStream=outgoingStream;
 				
 				remoteName = user;
 				remoteId = identity;
@@ -594,7 +616,7 @@
 
 				remoteCameraCanvas.label="Remote Video";
 				
-				remoteCameraCanvas.outgoingStream=outgoingStream;
+
 				//remoteCameraCanvas.drawLineUI.alpha=0.5;
 				// callee publishes media
 				outgoingStream = new NetStream(netConnection, NetStream.DIRECT_CONNECTIONS);
@@ -611,6 +633,7 @@
 				outgoingStream.client = o;
 				
 				netConnection.call(Relay, null, remoteId, Accept, userNameInput.text);
+				remoteCameraCanvas.outgoingStream=outgoingStream;
 				//本地的视频流也要加入outgoingStream
 				localCameraCanvas.outgoingStream=outgoingStream;
 				startVideo();
@@ -1360,13 +1383,9 @@
 			<mx:ViewStack id="mainStack" borderStyle="solid" creationPolicy="all"
 						  width="100%" height="100%" >
 				
-				<components:CameraCanvas id="localCameraCanvas"  width="100%" height="100%" />
-				<components:CameraCanvas id="remoteCameraCanvas" width="100%" height="100%" />
-				<!--				<s:NavigatorContent  label="Remote Vedio" width="100%" height="100%">
-				<mx:VideoDisplay id="remoteVideoDisplay" 
-				width="100%" height="100%"/>
-				
-				</s:NavigatorContent>-->
+				<components:CameraCanvas id="localCameraCanvas" localOrRemote_int="0"  width="100%" height="100%" />
+				<components:CameraCanvas id="remoteCameraCanvas" localOrRemote_int="1"  width="100%" height="100%" />
+
 			</mx:ViewStack>
 			
 			
@@ -1449,9 +1468,10 @@
 										 title="Chat Room" tile="{tileBC}" fontSize="12" visible="false">
 			<s:VGroup  width="100%" height="100%">
 				
-				<mx:TextArea id="textOutput"  editable="false" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingBottom="10" paddingTop="10"
-							 verticalScrollPosition="{textOutput.maxVerticalScrollPosition}" />
-				
+<!--				<s:TextArea id="textOutput"  editable="false" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingBottom="10" paddingTop="10"
+							verticalScrollPosition="{textOutput.maxVerticalScrollPosition}" />-->
+				<s:TextArea id="textOutput"  editable="false" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingBottom="10" paddingTop="10"
+							 />
 				<mx:ControlBar width="100%">
 					<mx:HBox width="100%">
 						<s:TextInput id="textInput"  enter="onSend()"

@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					xmlns:s="library://ns.adobe.com/flex/spark" 
-					xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" mouseDown="onMouseDown(event)">
+					xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"  mouseDown="onMouseDown(event)">
 	<fx:Script>
 		<![CDATA[
 			import mx.core.FlexGlobals;
 			import mx.events.FlexEvent;
 			public var outgoingStream:NetStream;
-			public var lineMSG:Object;
-	
+			public var lineMSG:Object=new Object();
+			public var localOrRemote_int:int;
+			
+
+
 			private function onMouseDown(e:MouseEvent):void {
 				trace("on vdDisplay MouseDow  ");
 				
 				
-				lineMSG= new Object();
+				lineMSG=new Object();
 				//add some extra data to ensure every sent object is unique
 				lineMSG.id = new Date().time;					
 				//var lineStartPoint:Point=new Point(e.localX, e.localY);
@@ -22,9 +25,10 @@
 				
 				startDrawingLine(lineMSG);
 				
+				
 				if (outgoingStream)
 				{
-					
+					lineMSG.localOrRemote_int=localOrRemote_int;
 					outgoingStream.send("onImLine_s", FlexGlobals.topLevelApplication.userNameInput.text, lineMSG);
 					trace("MouseDown:"+"("+lineMSG.lineStartPoint.x+","+lineMSG.lineStartPoint.y+")");
 				}else{
@@ -45,7 +49,8 @@
 			public function startDrawingLine(startPoint:Object):void{
 						
 				initLine();
-				drawLineUI.graphics.moveTo(startPoint.lineStartPoint.x, startPoint.lineStartPoint.y);										
+				drawLineUI.graphics.moveTo(startPoint.lineStartPoint.x, startPoint.lineStartPoint.y);	
+				trace("startDrawingLine:"+startPoint.lineStartPoint.x+", "+startPoint.lineStartPoint.y);
 
 			}
 	
@@ -62,6 +67,7 @@
 					
 					if (outgoingStream)
 					{
+
 						outgoingStream.send("onImLine_m", FlexGlobals.topLevelApplication.userNameInput.text, lineMSG);
 						trace("MouseDown:"+"("+lineMSG.lineEndPoint.x+","+lineMSG.lineEndPoint.y+")");
 					}   
@@ -79,7 +85,7 @@
 				initLine();
 				drawLineUI.graphics.moveTo(drawingPoint.lineStartPoint.x, drawingPoint.lineStartPoint.y);
 				drawLineUI.graphics.lineTo(drawingPoint.lineEndPoint.x, drawingPoint.lineEndPoint.y);
-				
+				trace("onDrawingLine:"+drawingPoint.lineEndPoint.x+", "+drawingPoint.lineEndPoint.y);
 				
 				var angle:Number = polarAngle(new Point(drawingPoint.lineEndPoint.x, drawingPoint.lineEndPoint.y), new Point(drawingPoint.lineStartPoint.x, drawingPoint.lineStartPoint.y));
 				
