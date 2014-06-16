@@ -537,7 +537,7 @@
 					
 					
 					trace("placeCall结束画线");
-					remoteCameraCanvas.onOverDraw();
+					//remoteCameraCanvas.onOverDraw();
 					
 					
 				}		
@@ -1383,7 +1383,7 @@
 			<mx:ViewStack id="mainStack" borderStyle="solid" creationPolicy="all"
 						  width="100%" height="100%" >
 				
-				<components:CameraCanvas id="localCameraCanvas" localOrRemote_int="0"  width="100%" height="100%" />
+				<components:CameraCanvas id="localCameraCanvas" label="Local Vedio" localOrRemote_int="0"  width="100%" height="100%" />
 				<components:CameraCanvas id="remoteCameraCanvas" localOrRemote_int="1"  width="100%" height="100%" />
 
 			</mx:ViewStack>

@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					xmlns:s="library://ns.adobe.com/flex/spark" 
-					xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"  mouseDown="onMouseDown(event)">
+					xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="creationCompleteHandler(event)"  mouseDown="onMouseDown(event)">
 	<fx:Script>
 		<![CDATA[
 			import mx.core.FlexGlobals;
 			import mx.events.FlexEvent;
+			
+			import spark.components.Label;
 			public var outgoingStream:NetStream;
 			public var lineMSG:Object=new Object();
 			public var localOrRemote_int:int;
-			
+			public var lineLabel:Label;
 
 
 			private function onMouseDown(e:MouseEvent):void {
@@ -26,11 +28,15 @@
 				startDrawingLine(lineMSG);
 				
 				
+				gesture.start();
+				
+				trace("MouseDown:"+"("+lineMSG.lineStartPoint.x+","+lineMSG.lineStartPoint.y+")");
+				
 				if (outgoingStream)
 				{
 					lineMSG.localOrRemote_int=localOrRemote_int;
 					outgoingStream.send("onImLine_s", FlexGlobals.topLevelApplication.userNameInput.text, lineMSG);
-					trace("MouseDown:"+"("+lineMSG.lineStartPoint.x+","+lineMSG.lineStartPoint.y+")");
+					//trace("MouseDown:"+"("+lineMSG.lineStartPoint.x+","+lineMSG.lineStartPoint.y+")");
 				}else{
 					trace("outgoingStream is null");
 				}
@@ -59,12 +65,11 @@
 				if (e.buttonDown) {
 
 					
-					//var lineEndPoint:Point=new Point(e.localX, e.localY);
 					var lineEndPoint:Point=new Point(this.mouseX, this.mouseY);
 					lineMSG.lineEndPoint=lineEndPoint;
 					
 					onDrawingLine(lineMSG);	
-					
+					 
 					if (outgoingStream)
 					{
 
@@ -76,7 +81,7 @@
 					drawLineUI.graphics.clear();
 					
 				}
-				trace("on vdDisplay onMouseMove  ");
+				//trace("on vdDisplay onMouseMove  ");
 
 			}
 			
@@ -85,7 +90,7 @@
 				initLine();
 				drawLineUI.graphics.moveTo(drawingPoint.lineStartPoint.x, drawingPoint.lineStartPoint.y);
 				drawLineUI.graphics.lineTo(drawingPoint.lineEndPoint.x, drawingPoint.lineEndPoint.y);
-				trace("onDrawingLine:"+drawingPoint.lineEndPoint.x+", "+drawingPoint.lineEndPoint.y);
+				//trace("onDrawingLine:"+drawingPoint.lineEndPoint.x+", "+drawingPoint.lineEndPoint.y);
 				
 				var angle:Number = polarAngle(new Point(drawingPoint.lineEndPoint.x, drawingPoint.lineEndPoint.y), new Point(drawingPoint.lineStartPoint.x, drawingPoint.lineStartPoint.y));
 				
@@ -98,6 +103,16 @@
 				
 				drawLineUI.graphics.lineTo(drawingPoint.lineEndPoint.x - (20 * Math.cos((angle + 45) * Math.PI / 180)),
 					drawingPoint.lineEndPoint.y - (20 * Math.sin((angle + 45) * Math.PI / 180)));
+				
+				
+				
+				//add label 
+				lineLabel.text="方向：";
+			    lineLabel.setStyle('color',0x00ff00);
+				lineLabel.setStyle('fontSize', 15);
+				lineLabel.x=drawingPoint.lineEndPoint.x+15;
+				lineLabel.y=drawingPoint.lineEndPoint.y-15;
+
   
 			}
 			protected function polarAngle(point:Point, center:Point=null):Number
@@ -112,18 +127,90 @@
 			
 			private function onMouseUp(e:MouseEvent):void {
 				
-				onOverDraw();
+				lineLabel.text="";
+				
+
 				trace("on vdDisplay onMouseUp  ");
 				this.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
-			}
-			
-			
-			public function onOverDraw():void{
-				drawLineUI.graphics.clear();
-			}
-			
+				trace("onMouseUp:"+"("+lineMSG.lineEndPoint.x+","+lineMSG.lineEndPoint.y+")");
+				gestureMag = gesture.update().getMagnitude() / 2;
+				trace("gestureMag1:"+gestureMag);
 
+				gestureMag = Math.min(gestureMag, maxMag);
+				trace("gestureMag2:"+gestureMag);
+
+				//Evaluate current gesture
+				direction = gesture.evalDirections();
+				
+				//Once a valid gesture is detected, perform animation
+				//No further gestures will be detected until animation ends
+				if (direction > -1)	{
+					
+					mouseMoveDirection();
+				}
+				
+				
+			}
+			private function mouseMoveDirection():void 
+			{
+				var currentMag:Number 
+			
+				//Motion of panel translation
+				if (direction < 4) {
+					
+					//Function of easing motion
+					currentMag = gestureMag * Math.cos(currentAngle += 0.1);
+					trace("currentMag:"+currentMag);
+					trace("currentAngle:"+currentAngle);
+
+					if (direction == 0) 	 trace("direction == 0:" + currentMag);
+					else if (direction == 1) trace("direction == 1:" + currentMag);
+					else if (direction == 2) trace("direction == 2:" + currentMag);
+					else if (direction == 3) trace("direction == 3:" + currentMag);
+				}
+					
+					//Motion of image scaling
+				else {
+					
+					//Setting a maximum cap on motion
+					gestureMag = Math.min(0.30, gestureMag);
+					
+					//Function of easing motion
+					currentMag = gestureMag * Math.cos(currentAngle += 0.1);
+					
+					//Conditions to scale up: Gesture is to South-East & Image is not scaled up already
+					if (direction == 4 )	trace("direction == 4:" +currentMag);		
+						//						ImgSelected.scaleX = ImgSelected.scaleY = -1 * currentMag + 1.30
+						
+						//Conditions to scale down: Gesture is to North-West & Image is scaled up
+					else if (direction == 6 ) 	
+						trace("direction == 6:" +currentMag);	
+					//						ImgSelected.scaleX = ImgSelected.scaleY = currentMag + 1;
+				}
+				
+				//If angle on easing function exceeds 90 degrees/ 0.5 Pi radian, stop animation & enable gesture detection
+				if (currentAngle> Math.PI/2) {
+					//this.removeEventListener(Event.ENTER_FRAME, mouseMove);
+
+					direction = -1;			//Reset direction
+					currentAngle = 0;	//Reset angle
+				}
+			}
+						
+			private var gesture:MGesture;				//Instance of MGesture class we've written
+			private var gestureMag:Number;			//Magnitude of current gesture made
+			private var direction:int = -1;					//Current gesture made, -1 is invalid, 0~7 is valid
+			private var maxMag:Number = 40;			//Magnitude capped at maximum
+			private var currentAngle:Number = 0;	//Angle on easing function for animation
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				gesture = new MGesture(this);	//Initiate MGesture for gesture detection
+				lineLabel=new Label();
+				this.addElement(lineLabel);
+			}
 			
 		]]>
 	</fx:Script>
