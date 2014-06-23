@@ -43,7 +43,7 @@ package
 		public function start ():void {
 			var startMX:Number = mainBox.mouseX;
 			var startMY:Number = mainBox.mouseY;
-			trace("MGesture:"+mainBox.mouseX+","+mainBox.mouseY);
+			trace("mouse start:"+mainBox.mouseX+","+mainBox.mouseY);
 			_earlier = new Vector2D(startMX, startMY);	//pointer location, initially
 			_latter = new Vector2D(startMX, startMY);	//pointer location, to be updated later
 		}
@@ -54,10 +54,10 @@ package
 		 */
 		public function update ():Vector2D {
 			_latter = new Vector2D(mainBox.mouseX, mainBox.mouseY);
-			trace("MGesture:"+mainBox.mouseX+","+mainBox.mouseY);
+			trace("_latter:"+mainBox.mouseX+","+mainBox.mouseY);
 			var vecUpdate:Vector2D = _latter.minus(_earlier);
 			
-			trace("vecUpdate:"+vecUpdate.x+","+vecUpdate.y);
+			//trace("vecUpdate:"+vecUpdate.x+","+vecUpdate.y);
 			return vecUpdate;
 		}
 		
@@ -109,7 +109,7 @@ package
 				}
 				
 				//update mouse location for next evaluation
-				_earlier =  _latter;
+				//_earlier =  _latter;
 			}
 			
 			//return detected direction

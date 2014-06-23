@@ -68,6 +68,9 @@
 					var lineEndPoint:Point=new Point(this.mouseX, this.mouseY);
 					lineMSG.lineEndPoint=lineEndPoint;
 					
+
+					mouseMoveDirection();
+					
 					onDrawingLine(lineMSG);	
 					 
 					if (outgoingStream)
@@ -107,7 +110,7 @@
 				
 				
 				//add label 
-				lineLabel.text="方向：";
+				//lineLabel.text="方向：";
 			    lineLabel.setStyle('color',0x00ff00);
 				lineLabel.setStyle('fontSize', 15);
 				lineLabel.x=drawingPoint.lineEndPoint.x+15;
@@ -129,73 +132,53 @@
 				
 				lineLabel.text="";
 				
-
+				drawLineUI.graphics.clear();
 				trace("on vdDisplay onMouseUp  ");
 				this.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
-				trace("onMouseUp:"+"("+lineMSG.lineEndPoint.x+","+lineMSG.lineEndPoint.y+")");
-				gestureMag = gesture.update().getMagnitude() / 2;
-				trace("gestureMag1:"+gestureMag);
 
-				gestureMag = Math.min(gestureMag, maxMag);
-				trace("gestureMag2:"+gestureMag);
-
-				//Evaluate current gesture
-				direction = gesture.evalDirections();
-				
-				//Once a valid gesture is detected, perform animation
-				//No further gestures will be detected until animation ends
-				if (direction > -1)	{
-					
-					mouseMoveDirection();
-				}
 				
 				
 			}
 			private function mouseMoveDirection():void 
 			{
-				var currentMag:Number 
-			
-				//Motion of panel translation
-				if (direction < 4) {
-					
-					//Function of easing motion
-					currentMag = gestureMag * Math.cos(currentAngle += 0.1);
-					trace("currentMag:"+currentMag);
-					trace("currentAngle:"+currentAngle);
-
-					if (direction == 0) 	 trace("direction == 0:" + currentMag);
-					else if (direction == 1) trace("direction == 1:" + currentMag);
-					else if (direction == 2) trace("direction == 2:" + currentMag);
-					else if (direction == 3) trace("direction == 3:" + currentMag);
-				}
-					
-					//Motion of image scaling
-				else {
-					
-					//Setting a maximum cap on motion
-					gestureMag = Math.min(0.30, gestureMag);
-					
-					//Function of easing motion
-					currentMag = gestureMag * Math.cos(currentAngle += 0.1);
-					
-					//Conditions to scale up: Gesture is to South-East & Image is not scaled up already
-					if (direction == 4 )	trace("direction == 4:" +currentMag);		
-						//						ImgSelected.scaleX = ImgSelected.scaleY = -1 * currentMag + 1.30
-						
-						//Conditions to scale down: Gesture is to North-West & Image is scaled up
-					else if (direction == 6 ) 	
-						trace("direction == 6:" +currentMag);	
-					//						ImgSelected.scaleX = ImgSelected.scaleY = currentMag + 1;
-				}
+				gestureMag = gesture.update().getMagnitude() / 2;
+				//trace("gestureMag1:"+gestureMag);
 				
-				//If angle on easing function exceeds 90 degrees/ 0.5 Pi radian, stop animation & enable gesture detection
-				if (currentAngle> Math.PI/2) {
-					//this.removeEventListener(Event.ENTER_FRAME, mouseMove);
-
-					direction = -1;			//Reset direction
-					currentAngle = 0;	//Reset angle
-				}
+				gestureMag = Math.min(gestureMag, maxMag);
+				//trace("gestureMag2:"+gestureMag);
+				
+				//Evaluate current gesture
+				direction = gesture.evalDirections();
+				switch(direction){
+					case 0:
+						lineLabel.text="Direction：East Moving";
+						break;
+					case 1:
+						lineLabel.text="Direction：South Moving";
+						break;
+					case 2:
+						lineLabel.text="Direction：West Moving";
+						break;
+					case 3:
+						lineLabel.text="Direction：North Moving";
+						break;
+					case 4:
+						lineLabel.text="Direction：Southeast Moving";
+						break;
+					case 5:
+						lineLabel.text="Direction：Southwest Moving";
+						break;
+					case 6:
+						lineLabel.text="Direction：Northwest Moving";
+						break;
+					case 7:
+						lineLabel.text="Direction：Northeast Moving";
+						break;
+					default:
+						lineLabel.text="Direction：Undetected";
+						break;
+				} 
 			}
 						
 			private var gesture:MGesture;				//Instance of MGesture class we've written
